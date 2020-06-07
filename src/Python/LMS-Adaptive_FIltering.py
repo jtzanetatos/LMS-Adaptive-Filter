@@ -6,16 +6,17 @@ import wx
 from scipy.io import wavfile
 import os
 import matplotlib.pyplot as plt
+from scipy.signal import  firwin, convolve
 
 __author__ = "Iason Tzanetatos"
 __version__ = "1.0.0"
 __status__ = "Prototype" # "Prototype", "Development", "Product"
 
-# TODO: fix AWGN function, fix convolution function, fix user input default states,
+# TODO: fix convolution function, fix user input default states,
 # Fix on main function how each function outputs interact with one antoher.
 # Re-implement Kaiser coefficients.
 
-def fir_filter(x):
+def fir_filter(x, fs):
     '''
     FIR 129th order Kaiser filter. Each element of the signal's array is entered
     into the 'Kaiser_filter_129' function & filtering is performed.
@@ -24,6 +25,8 @@ def fir_filter(x):
     ----------
     x : float 32 array
         Array containing the input (potentially) noised signal.
+    fs: int
+        The sampling frequency of the input audio signal.
     
     Returns
     -------
@@ -31,62 +34,47 @@ def fir_filter(x):
         Array containing the filtered signal.
     
     '''
-    def Kaiser_filter_129(x):
+    def fir_func(x, fs):
         '''
-        Coefficients of 129th order Kaiser FIR filter, calculated utilizing MATLAB's
-        filter design tool. The input element is multiplied in an iterative manner
-        with each of the filter's coefficients.
+        
         
         Parameters
         ----------
-        x : float32 array element
-            Single element from the input (potentially) noised signal.
+        x : TYPE
+            DESCRIPTION.
+        fs : TYPE
+            DESCRIPTION.
         
         Returns
         -------
-        y : float 64 array element
-            Single filtered element from the input noised signal.
+        filt_sig : TYPE
+            DESCRIPTION.
+        
         '''
-        # Define precalculated coefficients
-        coeff = np.array([-0.0007948268903,-5.593943826e-19,-0.0008397484198,-1.180242081e-18,-0.0009317332297,
-  8.140981308e-19, -0.00107358594,6.494930663e-19,-0.001267433865,3.233409206e-19,
-  -0.001514673117,-3.787564899e-19,-0.001815926516,-1.332201363e-18,-0.002171012806,
-  -3.284744759e-18,-0.002578927903,-6.218275661e-18,-0.003037839429,-1.062049035e-17,
-  -0.003545094747,-1.712500773e-17,-0.004097240977,-3.874260872e-18,-0.004690059926,
-  -1.036090122e-17,-0.005318613257,-1.895775376e-17,-0.005977303721,-3.117163302e-17,
-  -0.006659940816,-4.716072324e-17,-0.007359825075,-6.836691603e-18,-0.008069834672,
-  -2.214793461e-17,-0.008782522753,-4.299807909e-17, -0.00949022267,3.498921052e-17,
-    -0.0101851495,1.790501423e-17, -0.01085952017,-6.066208845e-18, -0.01150565501,
-  -4.168967126e-17, -0.01211609505,-8.695364951e-17, -0.01268371195,-2.599651979e-17,
-   -0.01320180576,6.315700001e-17, -0.01366421115,8.923559928e-18,   -0.014065383,
-  -7.716252436e-17, -0.01440048218,-6.250780881e-17, -0.01466544718,-3.167477721e-17,
-   -0.01485705283,4.404970689e-17, -0.01497296151,-2.602681611e-18,   0.9857720137,
-  -2.602681611e-18, -0.01497296151,4.404970689e-17, -0.01485705283,-3.167477721e-17,
-   -0.01466544718,-6.250780881e-17, -0.01440048218,-7.716252436e-17,   -0.014065383,
-  8.923559928e-18, -0.01366421115,6.315700001e-17, -0.01320180576,-2.599651979e-17,
-   -0.01268371195,-8.695364951e-17, -0.01211609505,-4.168967126e-17, -0.01150565501,
-  -6.066208845e-18, -0.01085952017,1.790501423e-17,  -0.0101851495,3.498921052e-17,
-   -0.00949022267,-4.299807909e-17,-0.008782522753,-2.214793461e-17,-0.008069834672,
-  -6.836691603e-18,-0.007359825075,-4.716072324e-17,-0.006659940816,-3.117163302e-17,
-  -0.005977303721,-1.895775376e-17,-0.005318613257,-1.036090122e-17,-0.004690059926,
-  -3.874260872e-18,-0.004097240977,-1.712500773e-17,-0.003545094747,-1.062049035e-17,
-  -0.003037839429,-6.218275661e-18,-0.002578927903,-3.284744759e-18,-0.002171012806,
-  -1.332201363e-18,-0.001815926516,-3.787564899e-19,-0.001514673117,3.233409206e-19,
-  -0.001267433865,6.494930663e-19, -0.00107358594,8.140981308e-19,-0.0009317332297,
-  -1.180242081e-18,-0.0008397484198,-5.593943826e-19,-0.0007948268903], dtype=np.float64)
         
-        # Coefficient length constant
-        coeff_len = 129
+        # Default filter order
+        numtaps = 14
         
-        # Initialize output
-        y = np.float64(0)
+        # Sanity check for user input
+        while numtaps < 2:
+            # Ask user input
+            try:
+                numtaps = np.uint16(input("Enter filter order (default: 14) >> "))
+            except ValueError:
+                print("User did not enter number or invalid number entered")
+                numtaps = np.uint16(input("Enter filter order (default: 14) >> "))
+        # Cutoff frequencies
+        cutoff = np.array([60, 7960], dtype=np.uint32) / fs
         
-        # Filter input sample
-        for i in range(0, coeff_len, 2):
-            y += x * coeff[i]
+        # Evaluate filter coefficients
+        h = firwin(numtaps=numtaps, cutoff=cutoff, pass_zero='bandpass', fs=fs)
         
-        # Return result of filtering
-        return y
+        # Convolve noised signal with filter coefficients
+        filt_sig = convolve(x, h)
+        
+        # Return filtered signal
+        return filt_sig
+    
     # Ask user if deterministic filtering is desired
     filt_flg = 'y'
     
@@ -115,14 +103,10 @@ def fir_filter(x):
             print("Number of audio channels present: %" %channels)
             # Loop through each audio channel
             for ch in range(channels):
-                # Filter each signal's samples
-                for i in range(len(x)):
-                    fir_out[i, ch] = Kaiser_filter_129(x[i, ch])
+                fir_out[:, ch] = fir_func(x[:, ch], fs)
         except IndexError:
             print("Audio file has one audio channel.")
-            # Filter each signal's samples
-            for i in range(len(x)):
-                fir_out[i] = Kaiser_filter_129(x[i])
+            fir_out = fir_func(x, fs)
         
         # Print end of filtering process
         print("Done filtering.")
@@ -234,13 +218,13 @@ def audio_read():
         read_path = get_path('*.wav')
     
     # Read audio file
-    sample_rate, signal = wavfile.read(read_path)
+    Fs, signal = wavfile.read(read_path)
     
     # Process read path to remove filename & avoid potential conflicts
     read_path = os.path.abspath(os.path.join(read_path, os.pardir))
     
     # Return signal & sample rate
-    return sample_rate, signal, read_path
+    return Fs, signal, read_path
 
 def audio_write(inpt, sample_rate, read_path):
     # TODO: file write sanity checks
@@ -434,8 +418,9 @@ def awgn_noise(x_sig):
         return None
     # User opted for noise infection
     else:
-        # Generate Gaussian noise corresponding to signal's available channels
-        awgn = np.random.normal(0, 1, size=(x_sig.shape))
+        upscl_coeff = 400
+        # Generate Gaussian noise corresponding to signal's available channels & upscale noise
+        awgn = np.random.standard_normal(size=x_sig.shape) * upscl_coeff
         
         # Initialize noised signal 
         x_noised = np.zeros_like(x_sig)
@@ -462,31 +447,31 @@ def main():
     
     '''
     # Audio read function, returns signal sample rate & file path
-    sample_rate, in_signal, read_path = audio_read()
+    fs, in_signal, read_path = audio_read()
     
     # Plot input signal function
-    plot_signal(in_signal, sample_rate)
+    plot_signal(in_signal, fs)
     
     # Simulate/generate noised signal
     noised_signal = awgn_noise(in_signal)
     
     # Plot noised signal
-    plot_signal(noised_signal, sample_rate)
+    plot_signal(noised_signal, fs)
     
     # Filter input signal
-    filtered_signal = fir_filter(in_signal)
+    filtered_signal = fir_filter(in_signal, fs)
     
     # Plot filtered signal
-    plot_signal(filtered_signal, sample_rate)
+    plot_signal(filtered_signal, fs)
     
     # Adaptive filter via LMS algorithm
     lms_filt = lms(noised_signal, in_signal)
     
     # Plot LMS filtered signal
-    plot_signal(lms_filt, sample_rate)
+    plot_signal(lms_filt, fs)
     
     # Write filtered signal to file
-    audio_write(filtered_signal, sample_rate, read_path)
+    audio_write(filtered_signal, fs, read_path)
 
 if __name__ == '__main__':
     main()
