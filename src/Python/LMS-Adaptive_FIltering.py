@@ -76,9 +76,7 @@ def fir_filter(x, fs):
         return filt_sig
     
     # Ask user if deterministic filtering is desired
-    filt_flg = 'y'
-    
-    filt_flg = input("Filter input signal by deterministic means? [Y/n] >> ").lower()
+    filt_flg = input("Filter input signal by deterministic means? [Y/n] >> ").lower() or 'y'
     
     # Sanity check of user input
     while filt_flg != 'y' and filt_flg != 'n':
@@ -129,8 +127,7 @@ def plot_signal(signal, sample_rate):
     
     '''
     # Default option to visualize signal
-    flag = 'y'
-    flag = input("Visualize results [Y/n] >> ").lower()
+    flag = input("Visualize results [Y/n] >> ").lower() or 'y'
     
     # Check if user input is valid
     while flag != 'y' and flag != 'n':
@@ -253,8 +250,7 @@ def audio_write(inpt, sample_rate, read_path):
     write_path = read_path
     
     # Ask user for predefined output filename or user-defined
-    name_flag = 'y'
-    name_flag = input("Use default output name (*_filtered.wav) ? [Y/n] (q to quit) >> ").lower()
+    name_flag = input("Use default output name (*_filtered.wav) ? [Y/n] (q to quit) >> ").lower() or 'y'
     
     # Sanity check for user input
     while name_flag != 'y' and name_flag != 'n' and name_flag != 'q':
@@ -325,10 +321,10 @@ def lms(x_sig, d_sig):
         return filt_out
     
     # Default filter order
-    filt_ord = 64
+    d_ord = 64
     
     # Ask user for flter order
-    filt_ord = np.uint16(input("Filter order (default: 64) >> "))
+    filt_ord = np.uint16(input("Filter order (default: 64) >> ") or d_ord)
     
     # Sanity check for user input
     while filt_ord < 1 and filt_ord%2 != 0:
@@ -372,8 +368,7 @@ def lms(x_sig, d_sig):
     filt_out = np.convolve(x_sig, w)
     
     # Ask user for learning rate visualization
-    plot_flg = 'y'
-    plot_flg = input("Visualize learning rate? [Y/n] >> ").lower()
+    plot_flg = input("Visualize learning rate? [Y/n] >> ").lower() or 'y'
     
     # Sanity check for user input
     if plot_flg != 'y' and plot_flg != 'n':
@@ -406,8 +401,7 @@ def awgn_noise(x_sig):
     
     '''
     # Ask user if noising input signal is desired
-    usr_flag = 'y'
-    usr_flag = input("Infect input signal with AWGN? [Y/n] >> ").lower()
+    usr_flag = input("Infect input signal with AWGN? [Y/n] >> ").lower() or 'y'
     
     # Sanity check for user input
     while usr_flag != 'y' and usr_flag != 'n':
@@ -468,6 +462,7 @@ def main():
     lms_filt = lms(noised_signal, in_signal)
     
     # Plot LMS filtered signal
+    # BUG: error rate is filtered signal & filtered signal is wrong
     plot_signal(lms_filt, fs)
     
     # Write filtered signal to file
