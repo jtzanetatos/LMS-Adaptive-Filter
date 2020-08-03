@@ -143,7 +143,7 @@ def plot_signal(signal, sample_rate):
         # Check number of audio channels
         try:
             channels = signal.shape[1]
-            print("Number of audio channels present: %" %channels)
+            print("Number of audio channels present: %d" % channels)
             # Loop & plot each signal's channel
             for i in range(channels):
                 plt.plot(time, signal[:, i], label="channel: %d" %channels)
