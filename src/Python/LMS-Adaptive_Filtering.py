@@ -98,7 +98,7 @@ def fir_filter(x, fs):
         # Check number of audio channels
         try:
             channels = x.shape[1]
-            print("Number of audio channels present: %" %channels)
+            print("Number of audio channels present: %d" %channels)
             # Loop through each audio channel
             for ch in range(channels):
                 fir_out[:, ch] = fir_func(x[:, ch], fs)
@@ -210,9 +210,8 @@ def audio_read():
     # Initialize window wildcard
     read_path = get_path('*.wav')
     # Sanity check for path selection
-    while read_path is None:
-        print("Invalid path. Select path.")
-        read_path = get_path('*.wav')
+    if read_path is None:
+        sys.exit("User did not select a file. Exiting..")
     
     # Read audio file
     Fs, signal = wavfile.read(read_path)
