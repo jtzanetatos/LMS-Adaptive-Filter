@@ -396,7 +396,7 @@ def main():
     # Audio read function, returns signal sample rate & file path
     fs, in_signal, read_path = audio_read()
     
-    # Plot input signal function
+    # Plot input signal
     plotSignal(in_signal, fs)
     
     # Simulate/generate noised signal
@@ -413,6 +413,9 @@ def main():
     
     # Filter Noised Signal
     filtered_signal = NetPredict(model, noised_signal, window_size, batch_size)
+    
+    # Plot filtered signal
+    plotSignal(filtered_signal, fs)
     
     # Write filtered signal to file
     audio_write(filtered_signal, fs, read_path)
