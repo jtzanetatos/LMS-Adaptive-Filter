@@ -428,7 +428,7 @@ def awgn_noise(x_sig):
             x_noised = x_sig + awgn
         
         # Return noised signal
-        return x_noised
+        return x_noised, awgn
 
 def main():
     '''
@@ -446,7 +446,7 @@ def main():
     plot_signal(in_signal, fs)
     
     # Simulate/generate noised signal
-    noised_signal = awgn_noise(in_signal)
+    noised_signal, awgn = awgn_noise(in_signal)
     
     # Plot noised signal
     plot_signal(noised_signal, fs)
@@ -458,7 +458,7 @@ def main():
     plot_signal(filtered_signal, fs)
     
     # Adaptive filter via LMS algorithm
-    lms_filt = lms(noised_signal, in_signal)
+    lms_filt = lms(awgn, in_signal)
     
     # Plot LMS filtered signal
     # BUG: error rate is filtered signal & filtered signal is wrong
