@@ -458,7 +458,7 @@ def main():
     plot_signal(filtered_signal, fs)
     
     # Adaptive filter via LMS algorithm
-    lms_filt = lms(awgn, in_signal)
+    lms_filt = lms(awgn, noised_signal)
     
     # Plot LMS filtered signal
     # BUG: error rate is filtered signal & filtered signal is wrong
