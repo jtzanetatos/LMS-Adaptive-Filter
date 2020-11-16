@@ -324,9 +324,22 @@ def NeuralNetTrain(in_signal):
     # Assert input signal's dimensions (mono channel/multichannel.)
     try:
         nChnls = in_signal.shape[1]
+        
+        # Normalize input signal
+        norm_sig = np.zeros_like(in_signal, dtype=np.float32)
+        
+        # Loop thourgh each available channel
+        for i in range(nChnls):
+            norm_sig[:, i] = (in_signal[:,i] - np.min(in_signal[:,i])) / \
+                             (np.max(in_signal[:, i]) - np.min(in_signal[:, i]))
     # Mono channel case
     except IndexError:
         nChnls = 1
+        
+        # Normalize input signal
+        norm_sig = (in_signal - np.min(in_signal)) / \
+            (np.max(in_signal) - np.min(in_signal))
+        
     
     # Ask user to provide batch size & window size for input signal's segmentation
     batch_size = int(input("Enter batch size (default [64]) >> "))
@@ -359,9 +372,9 @@ def NeuralNetTrain(in_signal):
         return b_signal.batch(batch_size).prefetch(1)
     
     # Batch input signal
-    b_signal = batchSignal(in_signal, batch_size, window_size)
+    b_signal = batchSignal(norm_sig, batch_size, window_size)
     
-    # TODO: Current model has extremely poor performance; time consuming to ..
+    # TODO: Current model has extremely poor performance; time consuming to 
     # randomly add/remove layers. Further studying required.
     # Define a Neural Network model
     model = tf.keras.models.Sequential([
@@ -372,9 +385,10 @@ def NeuralNetTrain(in_signal):
         # tf.keras.layers.Conv1D(filters=32, kernel_size=5,
         #                        strides=1, padding='causal',
         #                        activation='relu'),
-        tf.keras.layers.LSTM(64, return_sequences=True),
+        # tf.keras.layers.LSTM(64, return_sequences=True),
         tf.keras.layers.LSTM(32, return_sequences=True),
         tf.keras.layers.Dense(32, activation='relu'),
+        tf.keras.layers.Dropout(0.25),
         tf.keras.layers.Dense(16, activation='relu'),
         tf.keras.layers.Dense(1)
         ])
